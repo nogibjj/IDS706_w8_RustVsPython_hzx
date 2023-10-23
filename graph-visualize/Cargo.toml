@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 rasciigraph = "0.2.0"
+sys-info = "0.9.1"

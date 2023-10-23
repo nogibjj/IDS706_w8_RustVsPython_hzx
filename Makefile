@@ -7,12 +7,6 @@ install:
 	
 	echo 'eval "$(github-copilot-cli alias -- "$0")"' >> ~/.bashrc
 
-build:
-	mdbook build data-eng-rust-tutorial
-
-serve:
-	mdbook serve -p 8000 -n 127.0.0.1 data-eng-rust-tutorial 
-
 format:
 	@echo "Formatting all projects with cargo"
 	./format.sh
@@ -38,26 +32,37 @@ run:
 release:
 	cargo build --release
 
-deploy:
-	#if git is not configured, configure it
-	if [ -z "$(git config --global user.email)" ]; then git config --global user.email "noah.gift@gmail.com" &&\
-		 git config --global user.name "Noah Gift"; fi
-
-	#install mdbook if not installed
-	if [ ! -x "$(command -v mdbook)" ]; then cargo install mdbook; fi
-	@echo "====> deploying to github"
-	# if worktree exists, remove it: git worktree remove --force /tmp/book
-	# otherwise add it: git worktree add /tmp/book gh-pages
-	if [ -d /tmp/book ]; then git worktree remove --force /tmp/book; fi
-	git worktree add -f /tmp/book gh-pages
-	mdbook build data-eng-rust-tutorial
-	rm -rf /tmp/book/*
-	cp -rp data-eng-rust-tutorial/book/* /tmp/book/
-	cd /tmp/book && \
-		git add -A && \
-		git commit -m "deployed on $(shell date) by ${USER}" && \
-		git push origin gh-pages
-	git update-ref -d refs/heads/gh-pages
-	git push --force
-
 all: format lint test run
+
+python_install:
+	pip install --upgrade pip &&\
+		pip install -r requirements.txt
+
+python_test:
+	python -m pytest -vv --cov=main --cov=mylib test_*.py
+
+python_format:	
+	black *.py 
+
+python_lint:
+	ruff check *.py mylib/*.py
+
+python_container-lint:
+	docker run --rm -i hadolint/hadolint < Dockerfile
+
+python_refactor: format lint
+
+python_deploy:
+	#deploy goes here
+		
+# generate_and_push:
+# 	# Add, commit, and push the generated files to GitHub
+# 	@if [ -n "$$(git status --porcelain)" ]; then \
+# 		git config --local user.email "action@github.com"; \
+# 		git config --local user.name "GitHub Action"; \
+# 		git add .; \
+# 		git commit -m "Add metric log"; \
+# 		git push; \
+# 	else \
+# 		echo "No changes to commit. Skipping commit and push."; \
+# 	fi

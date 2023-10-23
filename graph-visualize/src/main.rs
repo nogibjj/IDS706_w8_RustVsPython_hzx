@@ -1,21 +1,51 @@
-extern crate rasciigraph;
+// extern crate rasciigraph;
 
-use rasciigraph::{plot, Config};
+mod lib; // Import the main module
+use lib::vis; // 导入 my_function 函数
+
+// use rasciigraph::{plot, Config};
+use std::time::Instant;
+use std::process::Command;
+
+// cargo run --manifest-path graph-visualize/Cargo.toml
 
 fn main() {
-    let cities = vec!["Lisbon", "Madrid", "Paris", "Berlin", "Copenhagen", "Stockholm", "Moscow"];
-    let distances_travelled = vec![0.0, 502.56, 1053.36, 2187.27, 2636.42, 3117.23, 4606.35];
+    let start_time = Instant::now();
+    vis();
+    let end_time = Instant::now();
+    let duration_time = end_time - start_time; // Calculate the elapsed time
+    // Convert duration to seconds
+    // let duration_secs = duration_time.as_secs();
+    println!("Total execution time: {:?}", duration_time); // Print the elapsed time
 
-    println!("{}", cities.join(" > "));
-
+    // Memory usage
+    let mem_info = sys_info::mem_info().unwrap();
     println!(
-        "{}",
-        plot(
-            distances_travelled.into_iter().map(|d| d as f64).collect(),
-            Config::default()
-                .with_offset(10)
-                .with_height(10)
-                .with_caption("Travelled distances (km)".to_string())
-        )
+        "Memory Usage: {}%",
+        (mem_info.total - mem_info.avail) as f32 / mem_info.total as f32 * 100.0
     );
+    // CPU calculation
+    let output = Command::new("ps")
+        .arg("-o")
+        .arg("%cpu")
+        .arg("-p")
+        .arg(format!("{}", std::process::id()))
+        .output()
+        .expect("Failed to execute ps command");
+
+    // Convert the output to a string
+    let usage = String::from_utf8_lossy(&output.stdout);
+    let lines: Vec<&str> = usage.split('\n').collect();
+
+    // Parse the CPU usage from the output
+    if lines.len() >= 2 {
+        let usage_str = lines[1].trim();
+        let usage_float: Result<f32, _> = usage_str.parse();
+        match usage_float {
+            Ok(usage) => println!("CPU Usage: {:.2}%", usage),
+            Err(_) => println!("Failed to parse CPU usage"),
+        }
+    } else {
+        println!("Failed to get CPU usage");
+    }
 }
