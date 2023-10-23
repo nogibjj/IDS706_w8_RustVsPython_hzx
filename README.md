@@ -32,6 +32,7 @@ For the purpose of recording the CPU, Memory usage and speed. We can derive thes
 
 ## For 1000 times execution
 We can use two shell scripts to calculate the result of 1000 times' run time. It is obvious that Rust is more effective than Python.
+
 ![Alt text](image-2.png)
 
 Possible explanations:
